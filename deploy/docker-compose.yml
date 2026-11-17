@@ -1,0 +1,88 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: thuexe-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  xe-service:
+    build: ../xe-service
+    container_name: thuexe-xe
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/thuexe_xe_db
+      SPRING_DATASOURCE_USERNAME: xe_user
+      SPRING_DATASOURCE_PASSWORD: xe_pass
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  khach-service:
+    build: ../khach-service
+    container_name: thuexe-khach
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/thuexe_khach_db
+      SPRING_DATASOURCE_USERNAME: khach_user
+      SPRING_DATASOURCE_PASSWORD: khach_pass
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  hopdong-service:
+    build: ../hopdong-service
+    container_name: thuexe-hopdong
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/thuexe_hopdong_db
+      SPRING_DATASOURCE_USERNAME: hopdong_user
+      SPRING_DATASOURCE_PASSWORD: hopdong_pass
+      SERVICE_XE_URL: http://xe-service:8081
+      SERVICE_KHACH_URL: http://khach-service:8082
+      SERVICE_BANGIAO_URL: http://bangiao-service:8084
+    ports:
+      - "8083:8083"
+    depends_on:
+      - xe-service
+      - khach-service
+      - bangiao-service
+
+  bangiao-service:
+    build: ../bangiao-service
+    container_name: thuexe-bangiao
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/thuexe_bangiao_db
+      SPRING_DATASOURCE_USERNAME: bangiao_user
+      SPRING_DATASOURCE_PASSWORD: bangiao_pass
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  gateway:
+    build: ../gateway
+    container_name: thuexe-gateway
+    # Đã xóa toàn bộ biến môi trường vì route đã nằm trong application.yml
+    ports:
+      - "8080:8080"
+    depends_on:
+      - xe-service
+      - khach-service
+      - hopdong-service
+      - bangiao-service
+
+volumes:
+  pgdata:

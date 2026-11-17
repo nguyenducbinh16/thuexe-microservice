@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      routes:
+        - id: xe-service
+          uri: http://xe-service:8081
+          predicates:
+            - Path=/xe/**
+        - id: khach-service
+          uri: http://khach-service:8082
+          predicates:
+            - Path=/khach/**
+        - id: hopdong-service
+          uri: http://hopdong-service:8083
+          predicates:
+            - Path=/hopdong/**
+        - id: bangiao-service
+          uri: http://bangiao-service:8084
+          predicates:
+            - Path=/bangiao/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
