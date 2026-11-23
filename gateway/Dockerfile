@@ -8,7 +8,7 @@ RUN mvn clean package -DskipTests
 
 # Stage 2: run
 FROM eclipse-temurin:17-jre-alpine
-RUN addgroup -S app && adduser -S app -G app
+RUN mvn -s .mvn/settings.xml clean package -DskipTests
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 USER app
