@@ -1,6 +1,7 @@
-# Stage 1: build (Dùng thẳng image Maven, không dùng mvnw để tránh lỗi 429)
+# Stage 1: build
 FROM maven:3.9-eclipse-temurin-17 AS builder
 WORKDIR /app
+COPY .mvn .mvn
 COPY pom.xml .
 COPY src ./src
 RUN mvn clean package -DskipTests
