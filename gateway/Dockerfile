@@ -1,11 +1,9 @@
-# Stage 1: build
-FROM eclipse-temurin:17-jdk-alpine AS builder
+# Stage 1: build (Dùng thẳng image Maven, không dùng mvnw để tránh lỗi 429)
+FROM maven:3.9-eclipse-temurin-17 AS builder
 WORKDIR /app
-COPY .mvn .mvn
-COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -q
+COPY pom.xml .
 COPY src ./src
-RUN ./mvnw package -DskipTests -q
+RUN mvn clean package -DskipTests
 
 # Stage 2: run
 FROM eclipse-temurin:17-jre-alpine
